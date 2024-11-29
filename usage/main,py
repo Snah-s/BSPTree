@@ -1,0 +1,93 @@
+import pygame
+import math
+from bsp_tree_module import BSPTree
+
+# Configuración de Pygame
+pygame.init()
+WIDTH, HEIGHT = 800, 600
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+clock = pygame.time.Clock()
+
+# Crear el árbol BSP usando el módulo en C++
+lines = [
+    (100, 100, 300, 100),
+    (300, 100, 300, 300),
+    (300, 300, 100, 300),
+    (100, 300, 100, 100),
+    (400, 200, 600, 200),
+    (600, 200, 600, 400),
+    (600, 400, 400, 400),
+    (400, 400, 400, 200),
+]
+
+bsp_tree = BSPTree(lines)
+
+# Posición inicial del jugador
+player_pos = [200, 200]
+player_angle = 0
+FOV = math.radians(90)  # Campo de visión de 90 grados
+NUM_RAYS = 500  # Número de rayos para el campo de visión
+
+
+# Función para calcular las líneas visibles
+def calculate_visible_lines():
+    visible_segments = []
+    angles = [player_angle - FOV / 2 + FOV * i / NUM_RAYS for i in range(NUM_RAYS)]
+
+    intersections = []
+    for angle in angles:
+        intersection = bsp_tree.consult_intersection(tuple(player_pos), angle)
+        x, y = intersection
+        if not math.isnan(x) and not math.isnan(y):
+            intersections.append(intersection)
+
+    for i in range(len(intersections) - 1):
+        visible_segments.append((intersections[i], intersections[i + 1]))
+
+    return visible_segments
+
+# Inicio del juego
+running = True
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    # Movimiento del jugador
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_w]:
+        player_pos[1] -= 5
+    if keys[pygame.K_s]:
+        player_pos[1] += 5
+    if keys[pygame.K_a]:
+        player_pos[0] -= 5
+    if keys[pygame.K_d]:
+        player_pos[0] += 5
+
+    # Dibuja el mapa
+    screen.fill((0, 0, 0))
+
+    # Dibuja todas las líneas en gris
+    for line in lines:
+        pygame.draw.line(screen, (50, 50, 50), (line[0], line[1]), (line[2], line[3]), 2)
+
+    # Calcula y dibuja las líneas visibles
+    visible_segments = calculate_visible_lines()
+    for segment in visible_segments:
+        pygame.draw.line(screen, (0, 255, 0), segment[0], segment[1], 2)
+
+    # Dibuja al jugador y su campo de visión
+    pygame.draw.circle(screen, (0, 0, 255), player_pos, 5)
+    pygame.draw.arc(
+        screen,
+        (255, 255, 0),
+        (player_pos[0] - 100, player_pos[1] - 100, 200, 200),
+        player_angle - FOV / 2,
+        player_angle + FOV / 2,
+        2,
+    )
+
+    pygame.display.flip()
+    clock.tick(60)
+
+pygame.quit()
