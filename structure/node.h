@@ -63,7 +63,7 @@ struct BSPTreeNode {
   bool intersects(const Polygon& polygon) const {
     for (const Polygon& p : polygons) {
       if (polygon.intersects(p)) {
-        std::cout << "Intersection found at node with plane: " << A << "x + " << B << "y + " << C << "z + " << D << " = 0"<<std::endl;
+        std::cout << "Intersección encontrada"<<std::endl;
         return true;
       }
     }
