@@ -28,8 +28,9 @@ struct R3 {
     return std::sqrt(x*x + y*y + z*z);
   }
 
-  R3 normilize() const {
+  R3 normalize() const {
     float mag = magnitude();
+    if (mag == 0) return R3(0, 0, 0);
     return R3(x/mag, y/mag, z/mag);
   }
 };
