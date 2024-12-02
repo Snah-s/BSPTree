@@ -63,21 +63,40 @@ struct BSPTreeNode {
   bool intersects(const Polygon& polygon) const {
     for (const Polygon& p : polygons) {
       if (polygon.intersects(p)) {
-        std::cout << "Intersection found at node with plane: " << A << "x + " << B << "y + " << C << "z + " << D << " = 0\n";
+        std::cout << "Intersection found at node with plane: " << A << "x + " << B << "y + " << C << "z + " << D << " = 0"<<std::endl;
         return true;
       }
     }
 
     if (polygon.isFrontOf(A, B, C, D)) {
-      return front ? front->intersects(polygon) : false;
+      if (front) {
+        return front->intersects(polygon);
+      } else {
+        return false;
+      }
     } else if (polygon.isBackOf(A, B, C, D)) {
-      return back ? back->intersects(polygon) : false;
+      if (back) {
+        return back->intersects(polygon);
+      } else {
+        return false;
+      }
     } else {
       Polygon frontPart, backPart;
       polygon.divide(A, B, C, D, frontPart, backPart);
 
-      bool intersectsFront = frontPart.vertex.empty() ? false : (front ? front->intersects(frontPart) : false);
-      bool intersectsBack = backPart.vertex.empty() ? false : (back ? back->intersects(backPart) : false);
+      bool intersectsFront = false;
+      if (!frontPart.vertex.empty()) {
+        if (front) {
+          intersectsFront = front->intersects(frontPart);
+        }
+      }
+
+      bool intersectsBack = false;
+      if (!backPart.vertex.empty()) {
+        if (back) {
+          intersectsBack = back->intersects(backPart);
+        }
+      }
 
       return intersectsFront || intersectsBack;
     }
